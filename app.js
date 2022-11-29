@@ -3,11 +3,15 @@ const morgan = require("morgan");
 const createError = require("http-errors");
 require("dotenv").config();
 
+const authRoute = require('./routes/authRoute.js');
+
 const app = express();
 
 app.get('/', async (req, res, next) => {
     res.send("Hello from express");
-})
+});
+
+app.use('/auth', authRoute);
 
 // error handling
 app.use(async (req, res, next) => {
@@ -16,7 +20,7 @@ app.use(async (req, res, next) => {
     // next(error);
 
     //next(createError.NotFound());
-    
+
     next(createError.NotFound('This route does not exist!'))
 });
 
