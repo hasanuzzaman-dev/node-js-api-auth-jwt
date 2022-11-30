@@ -1,12 +1,20 @@
 const express = require("express");
 const morgan = require("morgan");
+const mongoose = require('mongoose');
 const createError = require("http-errors");
 require("dotenv").config();
+//require('./helper/init-mongodb');
 
 const authRoute = require('./routes/authRoute.js');
 
+
+
 const app = express();
 app.use(morgan('dev'));
+app.use(express.json());
+
+
+
 
 app.get('/', async (req, res, next) => {
     res.send("Hello from express");
@@ -40,4 +48,15 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
     console.log(`Server running at PORT: ${PORT}`);
-})
+});
+
+
+//console.log(process.env.DB_CONNECTION_URL);
+mongoose.connect(process.env.DB_CONNECTION_URL, () => {
+    console.log('Connected DB at ' + process.env.DB_CONNECTION_URL);
+});
+
+
+
+
+
