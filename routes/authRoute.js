@@ -1,20 +1,32 @@
 const express = require('express');
 const router = express.Router();
 const createError = require('http-errors');
-
+const bcrypt = require('bcrypt');
 const User = require('../models/user.model')
+const { authSchema } = require('../helper/validation_schema');
 
 router.post('/register', async (req, res, next) => {
 
-    console.log(req.body);
+    //console.log(req.body);
     try {
-        const { name, email, password } = req.body;
-        if (!name || !email || !password) throw createError.BadRequest();
+        //const { username, email, password } = req.body;
 
-        const userDoesExist = await User.findOne({ email: email });
-        if (userDoesExist) throw createError.Conflict(`${email} is already exist!`);
+        //console.log(req.body);
+        const joiResult = await authSchema.validateAsync(req.body);
 
-        const user = new User({ name, email, password });
+        //console.log("joiResult: ",joiResult);
+
+        //if (!username || !email || !password) throw createError.BadRequest();
+
+        const userDoesExist = await User.findOne({ email: joiResult.email });
+        if (userDoesExist) throw createError.Conflict(`${joiResult.email} is already exist!`);
+
+        const hashedPassword = await bcrypt.hash(joiResult.password, 10);
+        const user = new User({
+            username: joiResult.username,
+            email: joiResult.email,
+            password: hashedPassword,
+        });
 
         const savedUser = await user.save();
 
@@ -23,6 +35,8 @@ router.post('/register', async (req, res, next) => {
 
 
     } catch (error) {
+        if (error.isJoi === true) error.status = 422;
+
         next(error)
     }
 });
