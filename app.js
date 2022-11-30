@@ -6,6 +6,7 @@ require("dotenv").config();
 const authRoute = require('./routes/authRoute.js');
 
 const app = express();
+app.use(morgan('dev'));
 
 app.get('/', async (req, res, next) => {
     res.send("Hello from express");
