@@ -3,7 +3,7 @@ const router = express.Router();
 const createError = require('http-errors');
 const bcrypt = require('bcrypt');
 const User = require('../models/user.model')
-const { authSchema } = require('../helper/validation_schema');
+const { authSchema, validateLoginSchema } = require('../helper/validation_schema');
 const { signAccessToken } = require('../helper/jwt_helper');
 
 router.post('/register', async (req, res, next) => {
@@ -35,7 +35,7 @@ router.post('/register', async (req, res, next) => {
 
         const accessToken = await signAccessToken(savedUser._id.toString());
 
-        res.json({accessToken});
+        res.json({ accessToken });
 
 
 
@@ -47,7 +47,33 @@ router.post('/register', async (req, res, next) => {
 });
 
 router.post('/login', async (req, res, next) => {
-    res.send("login route");
+    try {
+        const result = await validateLoginSchema.validateAsync(req.body);
+
+        const user = await User.findOne({ email: result.email });
+        if (!user) {
+            throw createError.NotFound("User not registered!");
+        }
+
+        try {
+            const isMatch = await bcrypt.compare(result.password, user.password);
+            if (!isMatch) {
+                throw createError.Unauthorized("Username/Password not valid!");
+            }
+
+            const accessToken = await signAccessToken(user.id);
+            res.send({ accessToken });
+
+        } catch (error) {
+            throw error;
+        }
+
+    } catch (error) {
+        if (error.isJoi === true) {
+            return next(createError.BadRequest("Invalid Username/Password!"));
+        }
+        next(error);
+    }
 });
 
 router.post('/refresh-token', async (req, res, next) => {
