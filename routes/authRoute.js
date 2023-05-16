@@ -4,6 +4,7 @@ const createError = require('http-errors');
 const bcrypt = require('bcrypt');
 const User = require('../models/user.model')
 const { authSchema } = require('../helper/validation_schema');
+const { signAccessToken } = require('../helper/jwt_helper');
 
 router.post('/register', async (req, res, next) => {
 
@@ -30,7 +31,11 @@ router.post('/register', async (req, res, next) => {
 
         const savedUser = await user.save();
 
-        res.json(savedUser)
+        console.log(savedUser._id.toString());
+
+        const accessToken = await signAccessToken(savedUser._id.toString());
+
+        res.json({accessToken});
 
 
 
