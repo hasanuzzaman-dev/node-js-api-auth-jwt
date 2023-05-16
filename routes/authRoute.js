@@ -4,7 +4,7 @@ const createError = require('http-errors');
 const bcrypt = require('bcrypt');
 const User = require('../models/user.model')
 const { authSchema, validateLoginSchema } = require('../helper/validation_schema');
-const { signAccessToken } = require('../helper/jwt_helper');
+const { signAccessToken, verifyAccessToken } = require('../helper/jwt_helper');
 
 router.post('/register', async (req, res, next) => {
 
@@ -78,6 +78,23 @@ router.post('/login', async (req, res, next) => {
 
 router.post('/refresh-token', async (req, res, next) => {
     res.send("refresh-token route");
+});
+
+router.get('/profile', verifyAccessToken, async (req, res, next) => {
+    console.log(req.headers['authorization']);
+
+
+    const userId = req.payload.aud
+    console.log("userId: ", userId);
+
+    try {
+        const user = await User.findById(userId);
+        res.send(user);
+    } catch (err) {
+        throw err;
+    }
+
+
 });
 
 router.post('/logout', async (req, res, next) => {
