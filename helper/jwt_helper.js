@@ -9,7 +9,7 @@ module.exports = {
 
             const secret = process.env.ACCESS_TOKEN_SECRET;
             const options = {
-                expiresIn: "1d",
+                expiresIn: "1h",
                 issuer: "www.cpl.com",
                 audience: userId,
             };
@@ -27,8 +27,9 @@ module.exports = {
     },
 
     verifyAccessToken: (req, res, next) => {
-        if (!req.headers['authorization'])
+        if (!req.headers['authorization']) {
             return next(createError.Unauthorized());
+        }
 
         const authHeader = req.headers['authorization'];
         const bearerToken = authHeader.split(' ');
@@ -36,7 +37,14 @@ module.exports = {
 
         JWT.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, payload) => {
             if (err) {
-                return next(createError.Unauthorized());
+                // if (err.name === 'JsonWebTokenError') {
+                //     return next(createError.Unauthorized());
+                // } else { // TokenExpiredError
+                //     return next(createError.Unauthorized(err.message));
+                // }
+
+                const message = err.name === 'JsonWebTokenError' ? 'Unauthorized' : err.message;
+                return next(createError.Unauthorized(message));
             }
 
             req.payload = payload;

@@ -12,5 +12,6 @@ const validateLoginSchema = Joi.object({
 })
 
 module.exports = {
-    authSchema,validateLoginSchema
+    authSchema,
+    validateLoginSchema,
 }
